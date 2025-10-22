@@ -1,0 +1,154 @@
+# YOLOv9
+
+# parameters
+nc: 80  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+activation: nn.Mish(0.1)
+#activation: nn.LeakyReLU(0.1)
+#activation: nn.ReLU()
+
+# anchors
+anchors: 3
+
+# gelan backbone
+backbone:
+  [
+   # conv down
+   [-1, 1, Conv, [16, 3, 2, None, 1, 1, nn.Mish(0.1)]],  # 0-P1/2
+
+   #csp-rfbs v3
+   # conv down
+   [-1, 1, Conv, [32, 3, 2, None, 1, 1, nn.Mish(0.1)]],  # 1-P2/4
+
+   #top branch   
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   #middle branch 1
+   [-3, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, DepthwiseSeparableConvBN, [32, 1, 32, nn.Mish(0.1)]],    
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   #middle branch 2
+   [-6, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, DepthwiseSeparableDilatedConvBN, [32, 1, 32, 3, 3, 3, nn.Mish(0.1)]],    
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   #middle branch 3
+   [-9, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, DepthwiseSeparableDilatedConvBN, [32, 1, 32, 3, 5, 5, nn.Mish(0.1)]],    
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   [[-1, -4, -7, -10, -12], 1, Shortcut, [1]],
+   [-1, 1, DepthwiseSeparableConvBN, [32, 1, 32, nn.Mish(0.1)]],  
+
+   #top branch 2  
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, DepthwiseSeparableDilatedConvBN, [32, 1, 32, 5, 6, 3, nn.Mish(0.1)]],    
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   #middle branch 2
+   [-4, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
+   [-1, 1, DepthwiseSeparableDilatedConvBN, [32, 1, 32, 5, 2, 1, nn.Mish(0.1)]],     
+   [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
+
+   [[-1, -4, -7], 1, Shortcut, [1]],
+   [-1, 1, DepthwiseSeparableConvBN, [32, 1, 32, nn.Mish(0.1)]],  
+   #end csp-rfbs v91, va fi +21 la toate referintele
+
+   # elan-1 block
+   [-1, 1, ELAN1, [32, 32, 16]],  # 23 old2
+
+   # avg-conv down
+   [-1, 1, AConv, [64]],  # 24 old3-P3/8
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]],  # 25 old4
+
+   # avg-conv down
+   [-1, 1, AConv, [96]],  # 26 old5-P4/16
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 27 old6
+
+   # avg-conv down
+   [-1, 1, AConv, [128]],  # 28 old7-P5/32
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [128, 128, 64, 3]],  # 29 old8
+  ]
+
+# elan head
+head:
+  [
+   # elan-spp block
+   [-1, 1, SPPELAN, [128, 64]],  # 30 old9
+
+   # up-concat merge
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [[-1, 27], 1, Concat, [1]],  # cat backbone P4
+
+   #Bifpn 1
+   [-1, 1, CSE_CAMv1, [224, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 34 old12
+
+   # up-concat merge
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [[-1, 25], 1, Concat, [1]],  # cat backbone P3
+
+   #Bifpn 2
+   [-1, 1, CSE_CAMv1, [160, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]],  # 38 old15
+
+   # avg-conv-down merge
+   [-1, 1, AConv, [48]],
+   [[-1, 34], 1, Concat, [1]],  # cat head P4
+
+   #Bifpn 3
+   [-1, 1, CSE_CAMv1, [144, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 42 old18 (P4/16-medium)
+
+   # avg-conv-down merge
+   [-1, 1, AConv, [64]],
+   [[-1, 30], 1, Concat, [1]],  # cat head P5
+
+   #Bifpn 4
+   [-1, 1, CSE_CAMv1, [192, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [128, 128, 64, 3]],  # 46 old21 (P5/32-large)
+   
+   # elan-spp block
+   [29, 1, SPPELAN, [128, 64]],  # 47 old22
+
+   # up-concat merge
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [[-1, 27], 1, Concat, [1]],  # cat backbone P4
+
+   #Bifpn 5
+   [-1, 1, CSE_CAMv1, [224, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 51 old25
+
+   # up-concat merge
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [[-1, 25], 1, Concat, [1]],  # cat backbone P3
+
+   #Bifpn 6
+   [-1, 1, CSE_CAMv1, [160, 16]],   
+
+   # elan-2 block
+   [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]],  # 55 old28
+
+   # detect
+   #[[28, 25, 22, 15, 18, 21], 1, DualDDetect, [nc]],  # Detect(P3, P4, P5)
+   [[55, 51, 47, 38, 42, 46], 1, DualDDetect, [nc]],  # Detect(P3, P4, P5)
+  ]

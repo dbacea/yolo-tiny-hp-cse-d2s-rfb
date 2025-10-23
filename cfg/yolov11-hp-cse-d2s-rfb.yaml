@@ -19,7 +19,7 @@ backbone:
   # [from, repeats, module, args]
   # n divides all Conv filters by 4, except the ones custom defined by me
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
-   #csp-rfbs v91
+   #start D2S-RFB
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
 
    #top branch   
@@ -56,7 +56,7 @@ backbone:
 
   - [[-1, -4, -7], 1, Shortcut, [1]]
   - [-1, 1, DepthwiseSeparableConvBN, [64, 1, 64, nn.Mish(0.1)]]  
-   #end csp-rfbs v91, va fi +21 la toate referintele
+   #end D2S-RFB
 
   - [-1, 2, C3k2, [256, False, 0.25]]#23, old2
   - [-1, 1, Conv, [256, 3, 2]] # 24, old 3-P3/8
@@ -71,32 +71,27 @@ backbone:
 # YOLO11n head
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  #- [[-1, 6], 1, Concat, [1]] # cat backbone P4
   - [[-1, 27], 1, Concat, [1]] # cat backbone P4
-   #Bifpn 1
-  - [-1, 1, CSE_CAMv1, [768, 16]]
+   #HP-CSE 1
+  - [-1, 1, HP-CSE, [768, 16]]
   - [-1, 2, C3k2, [512, False]] # 35, old13
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  #- [[-1, 4], 1, Concat, [1]] # cat backbone P3
   - [[-1, 25], 1, Concat, [1]] # cat backbone P3
-   #Bifpn 2
-  - [-1, 1, CSE_CAMv1, [512, 16]] 
+   #HP-CSE 2
+  - [-1, 1, HP-CSE, [512, 16]] 
   - [-1, 2, C3k2, [256, False]] # 39, old 16 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2]]
-#  - [[-1, 13], 1, Concat, [1]] # cat head P4
   - [[-1, 35], 1, Concat, [1]] # cat head P4
-   #Bifpn 3
-  - [-1, 1, CSE_CAMv1, [384, 16]]   
+   #HP-CSE 3
+  - [-1, 1, HP-CSE, [384, 16]]   
   - [-1, 2, C3k2, [512, False]] # 43, old19 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
-#  - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [[-1, 31], 1, Concat, [1]] # cat head P5
-   #Bifpn 4
-  - [-1, 1, CSE_CAMv1, [768, 16]]
+   #HP-CSE 4
+  - [-1, 1, HP-CSE, [768, 16]]
   - [-1, 2, C3k2, [1024, True]] # 47, old 22 (P5/32-large)
 
-#  - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)
   - [[39, 43, 47], 1, Detect, [nc]] # Detect(P3, P4, P5)

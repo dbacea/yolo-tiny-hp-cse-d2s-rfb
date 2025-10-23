@@ -14,7 +14,7 @@ backbone:
   # [from, number, module, args] c2, k=1, s=1, p=None, g=1, act=True
   [[-1, 1, Conv, [32, 3, 2, None, 1, nn.Mish(0.1)]],  # 0-P1/2  
   
-   #csp-rfbs v91
+   #start D2S-RFB
    [-1, 1, Conv, [64, 3, 2, None, 1, nn.Mish(0.1)]],  # 1-P2/4    
 
    #top branch   
@@ -51,7 +51,7 @@ backbone:
 
    [[-1, -4, -7], 1, Shortcut, [1]],
    [-1, 1, DepthwiseSeparableConvBN, [64, 1, 64, nn.Mish(0.1)]],  
-   #end csp-rfbs v91, va fi +21 la toate referintele
+   #end D2S-RFB
 
    [-1, 1, Conv, [32, 1, 1, None, 1, nn.Mish(0.1)]],
    [-2, 1, Conv, [32, 1, 1, None, 1, nn.Mish(0.1)]],
@@ -104,8 +104,8 @@ head:
    [42, 1, Conv, [128, 1, 1, None, 1, nn.Mish(0.1)]], # route backbone P4
    [[-1, -2], 1, Concat, [1]],
    
-   #Bifpn 1
-   [-1, 1, CSE_CAMv1, [256, 16]],   
+   #HP-CSE 1
+   [-1, 1, HP-CSE, [256, 16]],   
    
    [-1, 1, Conv, [64, 1, 1, None, 1, nn.Mish(0.1)]],
    [-2, 1, Conv, [64, 1, 1, None, 1, nn.Mish(0.1)]],
@@ -119,8 +119,8 @@ head:
    [35, 1, Conv, [64, 1, 1, None, 1, nn.Mish(0.1)]], # route backbone P3
    [[-1, -2], 1, Concat, [1]],
 
-   #Bifpn 2
-   [-1, 1, CSE_CAMv1, [128, 16]],   
+   #HP-CSE 2
+   [-1, 1, HP-CSE, [128, 16]],   
    
    [-1, 1, Conv, [32, 1, 1, None, 1, nn.Mish(0.1)]],
    [-2, 1, Conv, [32, 1, 1, None, 1, nn.Mish(0.1)]],
@@ -132,9 +132,8 @@ head:
    [-1, 1, Conv, [128, 3, 2, None, 1, nn.Mish(0.1)]],
    [[-1, 69], 1, Concat, [1]],
 
-
-   #Bifpn 3
-   [-1, 1, CSE_CAMv1, [256, 16]],   
+   #HP-CSE 3
+   [-1, 1, HP-CSE, [256, 16]],   
    
    [-1, 1, Conv, [64, 1, 1, None, 1, nn.Mish(0.1)]],
    [-2, 1, Conv, [64, 1, 1, None, 1, nn.Mish(0.1)]],
@@ -146,8 +145,8 @@ head:
    [-1, 1, Conv, [256, 3, 2, None, 1, nn.Mish(0.1)]],
    [[-1, 58], 1, Concat, [1]],
 
-   #Bifpn 4
-   [-1, 1, CSE_CAMv1, [512, 16]],   
+   #HP-CSE 4
+   [-1, 1, HP-CSE, [512, 16]],   
    
    [-1, 1, Conv, [128, 1, 1, None, 1, nn.Mish(0.1)]],
    [-2, 1, Conv, [128, 1, 1, None, 1, nn.Mish(0.1)]],

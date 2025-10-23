@@ -16,11 +16,11 @@ backbone:
   [
    # conv down
    [-1, 1, Conv, [16, 3, 2, None, 1, 1, nn.Mish(0.1)]],  # 0-P1/2
-
-   #csp-rfbs v3
+   
    # conv down
+   #start D2S-RFB      
    [-1, 1, Conv, [32, 3, 2, None, 1, 1, nn.Mish(0.1)]],  # 1-P2/4
-
+    
    #top branch   
    [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],
    [-1, 1, Conv, [32, 1, 1, None, 1, 1, nn.Mish(0.1)]],    
@@ -55,7 +55,7 @@ backbone:
 
    [[-1, -4, -7], 1, Shortcut, [1]],
    [-1, 1, DepthwiseSeparableConvBN, [32, 1, 32, nn.Mish(0.1)]],  
-   #end csp-rfbs v91, va fi +21 la toate referintele
+   #end D2S-RFB
 
    # elan-1 block
    [-1, 1, ELAN1, [32, 32, 16]],  # 23 old2
@@ -89,8 +89,8 @@ head:
    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 27], 1, Concat, [1]],  # cat backbone P4
 
-   #Bifpn 1
-   [-1, 1, CSE_CAMv1, [224, 16]],   
+   #HP-CSE 1
+   [-1, 1, HP-CSE, [224, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 34 old12
@@ -99,8 +99,8 @@ head:
    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 25], 1, Concat, [1]],  # cat backbone P3
 
-   #Bifpn 2
-   [-1, 1, CSE_CAMv1, [160, 16]],   
+   #HP-CSE 2
+   [-1, 1, HP-CSE, [160, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]],  # 38 old15
@@ -109,8 +109,8 @@ head:
    [-1, 1, AConv, [48]],
    [[-1, 34], 1, Concat, [1]],  # cat head P4
 
-   #Bifpn 3
-   [-1, 1, CSE_CAMv1, [144, 16]],   
+   #HP-CSE 3
+   [-1, 1, HP-CSE, [144, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 42 old18 (P4/16-medium)
@@ -119,8 +119,8 @@ head:
    [-1, 1, AConv, [64]],
    [[-1, 30], 1, Concat, [1]],  # cat head P5
 
-   #Bifpn 4
-   [-1, 1, CSE_CAMv1, [192, 16]],   
+   #HP-CSE 4
+   [-1, 1, HP-CSE, [192, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [128, 128, 64, 3]],  # 46 old21 (P5/32-large)
@@ -132,8 +132,8 @@ head:
    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 27], 1, Concat, [1]],  # cat backbone P4
 
-   #Bifpn 5
-   [-1, 1, CSE_CAMv1, [224, 16]],   
+   #HP-CSE 5
+   [-1, 1, HP-CSE, [224, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]],  # 51 old25
@@ -142,13 +142,12 @@ head:
    [-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 25], 1, Concat, [1]],  # cat backbone P3
 
-   #Bifpn 6
-   [-1, 1, CSE_CAMv1, [160, 16]],   
+   #HP-CSE 6
+   [-1, 1, HP-CSE, [160, 16]],   
 
    # elan-2 block
    [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]],  # 55 old28
 
    # detect
-   #[[28, 25, 22, 15, 18, 21], 1, DualDDetect, [nc]],  # Detect(P3, P4, P5)
    [[55, 51, 47, 38, 42, 46], 1, DualDDetect, [nc]],  # Detect(P3, P4, P5)
   ]

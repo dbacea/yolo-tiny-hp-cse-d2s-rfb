@@ -7,7 +7,7 @@ Implementation of paper - "Boosting Lightweight Object Detection with Enhanced F
 MS COCO
 
 | Model | Test Size | #Params (M) | BFLOPS | AP<sup>val</sup> | AP<sub>50</sub><sup>val</sup> | AP<sub>75</sub><sup>val</sup> | batch 32 fps on Jetson Nano |
-| :-- | :-: | :-: | :-: | :-: | :-: |
+| :-- | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | YOLOv7-tiny | 416 | 6.2 | 5.8 | **35.2%** | **52.8%** | **37.3%** | 14 *fps* |
 | NanoDet-M-1.5x | 416 | 2.08 | 2.42 | **26.8%** | **-** | **-** | - *fps* |
 | PP-PicoDet-M | 416 | 2.15 | 2.5 | **34.3%** | **49.8%** | **-** | - *fps* |
@@ -18,8 +18,8 @@ MS COCO
 | YOLOv11-n | 416 | 2.15 | 2.74 | **32.5%** | **46.8%** | **34.7%** | 18 *fps* |
 | YOLOv12-n | 416 | 2.54 | 2.5 | **33.3%** | **48.2%** | **35.4%** | 12 *fps* |
 | ECF-YOLOv7-tiny | 416 | 5.97 | 9.3 | **37.8%** | **56.0%** | **40.0%** | 9 *fps* |
-| **YOLOv7-tiny + HP-CSE + D2S-RFB** | 416 | 6.76 | 8.0 |  **38.8%** | **56.5%** | **41.7%** | 8 *fps* |
-| **YOLOv12-n + HP-CSE + D2S-RFB** | 416 | 3.01 | 3.7 | **35.0%** | **50.1%** | **37.4%** | 10 *fps* |
+| **YOLOv7-tiny <br/> + HP-CSE + D2S-RFB** | 416 | 6.76 | 8.0 |  **38.8%** | **56.5%** | **41.7%** | 8 *fps* |
+| **YOLOv12-n <br/>+ HP-CSE + D2S-RFB** | 416 | 3.01 | 3.7 | **35.0%** | **50.1%** | **37.4%** | 10 *fps* |
 
 ## Installation
 
@@ -71,6 +71,7 @@ You will get the results:
 To measure accuracy, download [COCO-annotations for Pycocotools](http://images.cocodataset.org/annotations/annotations_trainval2017.zip) to the `./coco/annotations/instances_val2017.json`
 
 
+To test on the Pascal VOC dataset, please use the command below:
 ``` shell
 #test on Pascal VOC the model yolov7-tiny-hp-cse-d2s-rfb which was trained on MS COCO
 python test_voc.py --data data/VOC.yaml --task test --img 416 --batch 32 --conf 0.001 --iou 0.7 --device 0 --weights weights/yolov7-tiny-hp-cse-d2s-rfb.pt --name  yolov7-tiny-hp-cse-d2s-rfb_416_val
@@ -162,29 +163,30 @@ class Shortcut(nn.Module):
 
 ```
 
-To test YOLOv9-t adapted with HP-CSE and D2S-RFB, please git clone the YOLOv9 official code base from https://github.com/WongKinYiu/yolov9. 
-After cloning the repo, you need to take the three modules from above (HP-CSE, DepthwiseSeparableConvBN and DepthwiseSeparableDilatedConvBN) and add them into python file from path: yolov9-main/models/common.py
-In the same file, extend the existing Shortcut class to the implementation attached above.
-
-After copying the three modules, you can use the following command to test the module:
+To test YOLOv9-t adapted with HP-CSE and D2S-RFB: 
+1. git clone the YOLOv9 official code base from https://github.com/WongKinYiu/yolov9. 
+2. After cloning the repo, you need to take the three modules from above (HP-CSE, DepthwiseSeparableConvBN and DepthwiseSeparableDilatedConvBN) and add them into python file from path: yolov9-main/models/common.py
+3. In the same file, extend the existing Shortcut class to the implementation attached above.
+4. After copying the three modules, you can use the following command to test the module:
 ``` shell
 #test yolov9-t-hp-cse-d2s-rfb
 python val.py --data data/coco.yaml --img 416 --batch 32 --conf 0.001 --iou 0.7 --device 0 --weights 'weights/yolov9-t-hp-cse-d2s-rfb.pt' --save-json --name yolov9-t-hp-cse-d2s-rfb_416_val
 
 ```
 
-To test YOLOv8-n, YOLOv10-n and YOLOv11-n adapted with HP-CSE and D2S-RFB, please git clone the ultralytics official code base from https://github.com/ultralytics/ultralytics.
-After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
-Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+To test YOLOv8-n, YOLOv10-n and YOLOv11-n adapted with HP-CSE and D2S-RFB: 
+1. git clone the ultralytics official code base from https://github.com/ultralytics/ultralytics.
+2. After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
+3. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
+4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+5. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+6. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+7. Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 ``` 
         elif m is Shortcut:
             c2 = ch[f[0]]
 ``` 
-
+8. Navigate to the root folder of the clone repository and create/run the one of the following python scripts (first one is for yolov8-n-hp-cse-d2s-rfb, second one is for yolov10-n-hp-cse-d2s-rfb and the third one is for yolov11-n-hp-cse-d2s-rfb):
 
 ``` 
 #python script content for testing yolov8-n-hp-cse-d2s-rfb
@@ -220,18 +222,19 @@ validation_results = model.val(data="coco.yaml", imgsz=416, batch=32, device="0"
 ```
 
 
-To test YOLOv12-n adapted with HP-CSE and D2S-RFB, please git clone the YOLOv12 official code base from https://github.com/sunsmarterjie/yolov12.
-After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
-Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+To test YOLOv12-n adapted with HP-CSE and D2S-RFB:
+1. git clone the YOLOv12 official code base from https://github.com/sunsmarterjie/yolov12.
+2. After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
+3. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
+4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+5. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+6. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+7. Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 ``` 
         elif m is Shortcut:
             c2 = ch[f[0]]
 ``` 
-
+8. Navigate to the root folder of the clone repository and create/run the one of the following python script (for yolov12-n-hp-cse-d2s-rfb):
 
 ``` 
 #python script content for testing yolov12-n-hp-cse-d2s-rfb

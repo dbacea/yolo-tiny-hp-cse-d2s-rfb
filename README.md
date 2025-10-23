@@ -226,10 +226,10 @@ To test YOLOv12-n adapted with HP-CSE and D2S-RFB:
 1. git clone the YOLOv12 official code base from https://github.com/sunsmarterjie/yolov12.
 2. After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
 3. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
-4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 100, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
 5. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
 6. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
-7. Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+7. Add the following elif code at the line 1075, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 ``` 
         elif m is Shortcut:
             c2 = ch[f[0]]

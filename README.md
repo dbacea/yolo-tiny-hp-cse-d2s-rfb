@@ -120,6 +120,33 @@ class DepthwiseSeparableDilatedConvBN(nn.Module):
         out = self.pointwise(out) 
         return self.act(out)
 
+#only needed for compatibility reasons with already trained models (see the weight files included in the repo), this block is the same as the HP-CSE.
+class CSE_CAMv1(nn.Module):
+    def __init__(self, c, r):
+        super(CSE_CAMv1, self).__init__()
+        c_o = c // r
+        self.maxsqueeze = nn.AdaptiveMaxPool2d(1)
+        self.avgsqueeze = nn.AdaptiveAvgPool2d(1)
+
+        self.conv = Conv(c, c, 1, 1, None, 1, 1, nn.Mish())
+        self.linear = nn.Sequential(
+            nn.Conv1d(c, c_o, 1, 1, 0, 1, 1, False),
+            nn.Mish(),
+            nn.Conv1d(c_o, c, 1, 1, 0, 1, 1, False))
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        max = self.maxsqueeze(x).view(b,c)
+        avg = self.avgsqueeze(x).view(b,c)
+        max = torch.unsqueeze(max, 2)
+        avg = torch.unsqueeze(avg, 2)
+        linear_max = self.linear(max).view(b, c, 1, 1)
+        linear_avg = self.linear(avg).view(b, c, 1, 1)
+       	output = linear_max + linear_avg
+        output = F.sigmoid(output) * x
+        output = self.conv(output)
+        return output
+
 class HP-CSE(nn.Module):
     def __init__(self, c, r):
         super(HP-CSE, self).__init__()
@@ -165,7 +192,7 @@ class Shortcut(nn.Module):
 
 To test YOLOv9-t adapted with HP-CSE and D2S-RFB: 
 1. git clone the YOLOv9 official code base from https://github.com/WongKinYiu/yolov9. 
-2. After cloning the repo, you need to take the three modules from above (HP-CSE, DepthwiseSeparableConvBN and DepthwiseSeparableDilatedConvBN) and add them into python file from path: yolov9-main/models/common.py
+2. After cloning the repo, you need to take the three modules from above (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN and DepthwiseSeparableDilatedConvBN) and add them into python file from path: yolov9-main/models/common.py
 3. In the same file, extend the existing Shortcut class to the implementation attached above.
 4. After copying the three modules, you can use the following command to test the module:
 ``` shell
@@ -176,11 +203,11 @@ python val.py --data data/coco.yaml --img 416 --batch 32 --conf 0.001 --iou 0.7 
 
 To test YOLOv8-n, YOLOv10-n and YOLOv11-n adapted with HP-CSE and D2S-RFB: 
 1. git clone the ultralytics official code base from https://github.com/ultralytics/ultralytics.
-2. After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
-3. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
-4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-5. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-6. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+2. After cloning the repo, you need to take the four modules from above (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
+3. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
+4. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 105, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+5. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+6. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 7. Add the following elif code at the line 1063, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 ``` 
         elif m is Shortcut:
@@ -225,10 +252,10 @@ validation_results = model.val(data="coco.yaml", imgsz=416, batch=32, device="0"
 To test YOLOv12-n adapted with HP-CSE and D2S-RFB:
 1. git clone the YOLOv12 official code base from https://github.com/sunsmarterjie/yolov12.
 2. After cloning the repo, you need to take the four modules from above (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) and add them into python file from path: ultralytics/ultralytics/nn/modules/block.py
-3. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
-4. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 100, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-5. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
-6. Add the modules names (HP-CSE, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
+3. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 13, into the same file.
+4. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the __all__ variable from line 100, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+5. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 20, into the python file from path: ultralytics/ultralytics/nn/modules/__init__.py.
+6. Add the modules names (HP-CSE, CSE_CAMv1, DepthwiseSeparableConvBN, DepthwiseSeparableDilatedConvBN and Shortcut) into the import statement from line 14, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 7. Add the following elif code at the line 1075, into the python file from path: ultralytics/ultralytics/nn/tasks.py
 ``` 
         elif m is Shortcut:

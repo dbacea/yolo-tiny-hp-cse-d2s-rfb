@@ -1,6 +1,6 @@
 # Official Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field
 
-Implementation of paper - ["Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field"] (https://www.sciencedirect.com/science/article/pii/S0925231226001256).
+Implementation of paper - [Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field] (https://www.sciencedirect.com/science/article/pii/S0925231226001256).
 
 ## Performance 
 

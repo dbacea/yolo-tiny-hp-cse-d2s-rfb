@@ -1,6 +1,6 @@
 # Official Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field
 
-Implementation of paper - "Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field", submitted to journal Neurocomputing.
+Implementation of paper - ["Boosting Lightweight Object Detection with Enhanced Feature Fusion and Optimized Receptive Field"] (https://www.sciencedirect.com/science/article/pii/S0925231226001256).
 
 ## Performance 
 
@@ -332,6 +332,20 @@ python test.py --task speed --data data/coco.yaml --img 416 --batch 32 --conf 0.
 </details>
 
 Tested with: Python 3.7.13, Pytorch 1.11.0+cu116
+
+
+## Citation
+
+```
+@article{bacea2026boosting,
+  title={Boosting lightweight object detection with enhanced feature fusion and optimized receptive field},
+  author={Bacea, Dan-Sebastian and Oniga, Florin},
+  journal={Neurocomputing},
+  pages={132728},
+  year={2026},
+  publisher={Elsevier}
+}
+```
 
 ## Acknowledgements
 
